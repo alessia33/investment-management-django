@@ -11,9 +11,11 @@ from django.utils import timezone
 from rest_framework.decorators import api_view
 from django.shortcuts import render
 
+# View for the home page.
 def home(request):
     return render(request, 'home.html')
 
+# API view for uploading Trade data.
 class TradeUploadView(APIView):
     def post(self, request, format=None):
         file = request.FILES['file']
@@ -27,8 +29,7 @@ class TradeUploadView(APIView):
             )        
         return Response({'message': 'Trades uploaded successfully'}, status=status.HTTP_200_OK)
 
-
-            
+# API view for uploading CashFlow data.
 class CashFlowUploadView(APIView):
     def post(self, request, format=None):
         file = request.FILES['file']
@@ -45,6 +46,7 @@ class CashFlowUploadView(APIView):
             )
         return Response({'message': 'Cash flows uploaded successfully'}, status=status.HTTP_200_OK)
 
+# API view to get the realized amount by a given date.
 @api_view(['GET'])
 def get_realized_amount(request, year, month, day):
     reference_date = datetime(year, month, day).date()
@@ -54,7 +56,7 @@ def get_realized_amount(request, year, month, day):
     ).aggregate(total_amount=Sum('amount'))['total_amount'] or 0
     return JsonResponse({'realized_amount': realized_amount})
 
-
+# Function to calculate the gross expected amount as of a reference date.
 def calculate_gross_expected_amount(reference_date):
     gross_expected_amount = 0
     for trade in Trade.objects.all():
@@ -71,12 +73,14 @@ def calculate_gross_expected_amount(reference_date):
 
     return gross_expected_amount
 
+# API view to get the gross expected amount by a given date.
 @api_view(['GET'])
 def get_gross_expected_amount(request, year, month, day):
     reference_date = datetime(year, month, day).date()
     amount = calculate_gross_expected_amount(reference_date)
     return JsonResponse({'gross_expected_amount': amount})
 
+# API view to get the remaining invested amount by a given date.
 @api_view(['GET'])
 def get_remaining_invested_amount(request, year, month, day):
     reference_date = datetime(year, month, day).date()
@@ -94,7 +98,7 @@ def get_remaining_invested_amount(request, year, month, day):
     return JsonResponse({'remaining_invested_amount': remaining_invested_amount})
 
 
-
+# API view to get the closing date of a trade given its ID.
 @api_view(['GET'])
 def get_closing_date(request, trade_id):
     try:
